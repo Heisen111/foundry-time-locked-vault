@@ -8,8 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @author Devarshi Dave
  * @notice This contract allows users to deposit Ether and ERC20 tokens with a time lock.
  */
-
-contract TimeLockedVault{
+contract TimeLockedVault {
     //Errors
     error TimeLockedVault__InsufficientDeposit();
     error TimeLockedVault__InvalidUnlockTime();
@@ -19,14 +18,14 @@ contract TimeLockedVault{
     error TimeLockedVault__InvalidToken();
 
     //Structs
-    struct Lock{
+    struct Lock {
         uint256 amount;
         uint256 unlockTime;
     }
 
     //State Variables
     mapping(address => Lock) public ethLocks;
-    mapping(address => mapping(address => Lock)) public tokenLocks; 
+    mapping(address => mapping(address => Lock)) public tokenLocks;
     address public owner;
 
     //Events
@@ -38,8 +37,8 @@ contract TimeLockedVault{
     event OwnershipTransferred(address indexed oldOwner, address indexed newOwner);
 
     //Modifiers
-    modifier onlyOwner(){
-         require(msg.sender == owner, "Not owner");
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
         _;
     }
 
@@ -51,32 +50,29 @@ contract TimeLockedVault{
     //Fuctions
     //---------------------- ETH Logic -------------------
     function depositEth(uint256 _unlockTime) external payable {
-        if(msg.value == 0) {
+        if (msg.value == 0) {
             revert TimeLockedVault__InsufficientDeposit();
         }
-        if(_unlockTime <= block.timestamp) {
+        if (_unlockTime <= block.timestamp) {
             revert TimeLockedVault__InvalidUnlockTime();
         }
 
         Lock storage userLock = ethLocks[msg.sender];
 
-        if(userLock.amount >0){
-            revert TimeLockedVault__LockNotExpired(); 
+        if (userLock.amount > 0) {
+            revert TimeLockedVault__LockNotExpired();
         }
-        ethLocks[msg.sender] = Lock({
-            amount: msg.value,
-            unlockTime: _unlockTime
-        });
-       
-        emit EthDeposited(msg.sender, msg.value, _unlockTime); 
+        ethLocks[msg.sender] = Lock({amount: msg.value, unlockTime: _unlockTime});
+
+        emit EthDeposited(msg.sender, msg.value, _unlockTime);
     }
 
     function withdrawEth() external {
         Lock memory userLock = ethLocks[msg.sender];
-        if(userLock.amount == 0){
+        if (userLock.amount == 0) {
             revert TimeLockedVault__InsufficientBalance();
         }
-        if(block.timestamp < userLock.unlockTime){
+        if (block.timestamp < userLock.unlockTime) {
             revert TimeLockedVault__LockNotExpired();
         }
 
@@ -84,12 +80,12 @@ contract TimeLockedVault{
         (bool success,) = msg.sender.call{value: userLock.amount}("");
         require(success, "Ether transfer failed");
 
-        emit EthWithdrawn(msg.sender, userLock.amount);     
+        emit EthWithdrawn(msg.sender, userLock.amount);
     }
 
     function extendEthLock(uint256 _newUnlockTime) external {
         Lock storage userLock = ethLocks[msg.sender];
-        if(userLock.amount == 0){
+        if (userLock.amount == 0) {
             revert TimeLockedVault__NoActiveLock();
         }
         require(_newUnlockTime > userLock.unlockTime, "Must increase unlock time");
@@ -101,19 +97,19 @@ contract TimeLockedVault{
     //---------------------- ERC20 Logic -------------------
 
     function depositToken(address _token, uint256 _amount, uint256 _unlockTime) external {
-        if(_token == address(0)){
+        if (_token == address(0)) {
             revert TimeLockedVault__InvalidToken();
         }
-        if(_amount == 0){
+        if (_amount == 0) {
             revert TimeLockedVault__InsufficientDeposit();
         }
-         if(_unlockTime <= block.timestamp) {
+        if (_unlockTime <= block.timestamp) {
             revert TimeLockedVault__InvalidUnlockTime();
         }
 
         Lock storage userLock = tokenLocks[msg.sender][_token];
-        if(userLock.amount >0){
-            revert TimeLockedVault__LockNotExpired(); 
+        if (userLock.amount > 0) {
+            revert TimeLockedVault__LockNotExpired();
         }
         bool success = IERC20(_token).transferFrom(msg.sender, address(this), _amount);
         require(success, "Token transfer failed");
@@ -124,10 +120,10 @@ contract TimeLockedVault{
 
     function withdrawToken(address _token) external {
         Lock memory userLock = tokenLocks[msg.sender][_token];
-        if(userLock.amount == 0){
+        if (userLock.amount == 0) {
             revert TimeLockedVault__InsufficientBalance();
         }
-        if(block.timestamp < userLock.unlockTime){
+        if (block.timestamp < userLock.unlockTime) {
             revert TimeLockedVault__LockNotExpired();
         }
 
@@ -140,7 +136,7 @@ contract TimeLockedVault{
 
     function extendTokenLock(address _token, uint256 _newUnlockTime) external {
         Lock storage userLock = tokenLocks[msg.sender][_token];
-        if(userLock.amount == 0){
+        if (userLock.amount == 0) {
             revert TimeLockedVault__NoActiveLock();
         }
         require(_newUnlockTime > userLock.unlockTime, "Must increase unlock time");
@@ -151,26 +147,25 @@ contract TimeLockedVault{
 
     // ---------------------- Admin -----------------------
 
-    function transferOwnership(address _newOwner) external onlyOwner{
+    function transferOwnership(address _newOwner) external onlyOwner {
         require(_newOwner != address(0), "Invalid new owner");
         emit OwnershipTransferred(owner, _newOwner);
         owner = _newOwner;
     }
 
-    function emergencyWithdraw(address_user, address_token) external onlyOwner{
-        if(_token == address(0)){
+    function emergencyWithdraw(address _user, address _token) external onlyOwner {
+        if (_token == address(0)) {
             Lock memory userLock = ethLocks[_user];
-            if(userLock.amount == 0){
+            if (userLock.amount == 0) {
                 revert TimeLockedVault__InsufficientBalance();
             }
             delete ethLocks[_user];
             (bool success,) = _user.call{value: userLock.amount}("");
             require(success, "Ether transfer failed");
             emit EthWithdrawn(_user, userLock.amount);
-        }
-        else{
+        } else {
             Lock memory userLock = tokenLocks[_user][_token];
-            if(userLock.amount == 0){
+            if (userLock.amount == 0) {
                 revert TimeLockedVault__InsufficientBalance();
             }
             delete tokenLocks[_user][_token];
