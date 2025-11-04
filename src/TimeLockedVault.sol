@@ -178,4 +178,11 @@ contract TimeLockedVault {
     receive() external payable {
         revert("Use depositETH()");
     }
+
+    //Getter functions
+
+    function getEthLock(address _user) external view returns (uint256 amount, uint256 unlockTime) {
+        Lock memory userLock = ethLocks[_user];
+        return (userLock.amount, userLock.unlockTime);
+    }
 }
