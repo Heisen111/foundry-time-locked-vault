@@ -71,4 +71,46 @@ contract TimeLockedVaultTest is Test {
         vm.expectRevert(TimeLockedVault.TimeLockedVault__LockNotExpired.selector);
         timeLockedVault.withdrawEth();
     }
+
+    function testWithdrawEthSucceedsAfterUnlockTime() public {
+        vm.prank(USER);
+        timeLockedVault.depositEth{value: 2 ether}(UNLOCKTIME);
+        vm.warp(UNLOCKTIME + 1);
+
+        vm.prank(USER);
+        vm.expectEmit(true, false, false, true);
+        emit TimeLockedVault.EthWithdrawn(USER, 2 ether);
+        timeLockedVault.withdrawEth();
+
+        (uint256 amount,) = timeLockedVault.getEthLock(USER);
+        assertEq(amount, 0);
+    }
+
+    function testExtendEthLockFailsIfNoActiveLock() public {
+        vm.prank(USER);
+        vm.expectRevert(TimeLockedVault.TimeLockedVault__NoActiveLock.selector);
+        timeLockedVault.extendEthLock(UNLOCKTIME + 1 days);
+    }
+
+    function testExtendEthLockFailsIfNewUnlockTimeNotGreater() public {
+        vm.prank(USER);
+        timeLockedVault.depositEth{value: 2 ether}(UNLOCKTIME);
+
+        vm.prank(USER);
+        vm.expectRevert("Must increase unlock time");
+        timeLockedVault.extendEthLock(UNLOCKTIME - 1 days);
+    }
+
+    function testExtendEthLockSucceeds() public {
+        vm.prank(USER);
+        timeLockedVault.depositEth{value: 2 ether}(UNLOCKTIME);
+
+        uint256 newUnlockTime = UNLOCKTIME + 2 days;
+        vm.prank(USER);
+        vm.expectEmit(true, false, false, true);
+        emit TimeLockedVault.LockExtended(USER, newUnlockTime);
+        timeLockedVault.extendEthLock(newUnlockTime);
+        (, uint256 unlockTime) = timeLockedVault.getEthLock(USER);
+        assertEq(unlockTime, newUnlockTime);
+    }
 }
