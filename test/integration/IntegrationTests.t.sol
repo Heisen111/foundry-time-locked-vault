@@ -3,9 +3,11 @@ pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
 import {TimeLockedVault} from "src/TimeLockedVault.sol";
+import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 
 contract Integration_TimeLockedVault is Test {
     TimeLockedVault vault;
+    ERC20Mock token;
 
     address USER = makeAddr("user");
     address OWNER = makeAddr("owner");
@@ -18,6 +20,9 @@ contract Integration_TimeLockedVault is Test {
         vm.startPrank(OWNER);
         vault = new TimeLockedVault();
         vm.stopPrank();
+
+        token = new ERC20Mock();
+        token.transfer(USER, 100 ether);
     }
 
     function test_UserCanDepositExtendAndWithdrawEthEndToEnd() public {
@@ -42,5 +47,18 @@ contract Integration_TimeLockedVault is Test {
         (uint256 amount, uint256 time) = vault.getEthLock(USER);
         assertEq(amount, 0, "ETH lock should be cleared");
         assertEq(USER.balance, 5 ether, "User should recover full amount");
+    }
+
+    function test_UserCanDepositAndWithdrawTokenEndToEnd() public {
+        vm.startPrank(USER);
+        token.approve(address(vault), 10 ether);
+        uint256 unlock = block.timestamp + LOCK_DURATION;
+
+        vault.depositToken(address(token), 5 ether, unlock);
+        vm.warp(unlock + 1);
+        vault.withdrawToken(address(token));
+        vm.stopPrank();
+
+        assertEq(token.balanceOf(USER), 100 ether);
     }
 }
