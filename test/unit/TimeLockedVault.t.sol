@@ -182,4 +182,49 @@ contract TimeLockedVaultTest is Test {
 
         assertEq(token.balanceOf(USER), 500 ether);
     }
+
+    function testFuzz_DepositEth(uint256 depositAmount, uint256 unlockTime) public {
+        vm.assume(depositAmount > 0 && depositAmount < 100 ether);
+        vm.assume(unlockTime > block.timestamp + 1 hours); // must be future
+
+        address user = makeAddr("user");
+
+        vm.deal(user, depositAmount); // give user ETH
+        vm.startPrank(user);
+        timeLockedVault.depositEth{value: depositAmount}(unlockTime);
+        vm.stopPrank();
+
+        (uint256 storedAmount, uint256 storedUnlock) = timeLockedVault.getEthLock(user);
+        assertEq(storedAmount, depositAmount);
+        assertEq(storedUnlock, unlockTime);
+    }
+
+    function testFuzz_ExtendEthLock(uint256 newUnlockTime) public {
+        vm.assume(newUnlockTime > UNLOCKTIME + 1 hours);
+
+        vm.startPrank(USER);
+        timeLockedVault.depositEth{value: 1 ether}(UNLOCKTIME);
+        timeLockedVault.extendEthLock(newUnlockTime);
+        vm.stopPrank();
+
+        (, uint256 storedUnlock) = timeLockedVault.getEthLock(USER);
+        assertEq(storedUnlock, newUnlockTime);
+    }
+
+    function testFuzz_WithdrawEth_AfterUnlock(uint256 depositAmount, uint256 lockDuration) public {
+        vm.assume(depositAmount > 0 && depositAmount < 50 ether);
+        vm.assume(lockDuration > 1 hours && lockDuration < 365 days);
+
+        vm.deal(USER, depositAmount);
+
+        vm.startPrank(USER);
+        uint256 unlockTime = block.timestamp + lockDuration;
+        timeLockedVault.depositEth{value: depositAmount}(unlockTime);
+        vm.warp(lockDuration + 1);
+        timeLockedVault.withdrawEth();
+        vm.stopPrank();
+
+        (uint256 storeAmount,) = timeLockedVault.getEthLock(USER);
+        assertEq(storeAmount, 0);
+    }
 }
