@@ -19,6 +19,7 @@ contract TimeLockedVaultTest is Test {
         timeLockedVault = deployTimeLockedVault.run();
         vm.deal(USER, STARTING_VALUE);
         token = new ERC20Mock();
+        token.mint(address(this), 1000 ether);
         token.transfer(USER, 500 ether);
         vm.startPrank(USER);
         token.approve(address(timeLockedVault), type(uint256).max);
