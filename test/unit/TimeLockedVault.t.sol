@@ -19,7 +19,7 @@ contract TimeLockedVaultTest is Test {
         timeLockedVault = deployTimeLockedVault.run();
         vm.deal(USER, STARTING_VALUE);
         token = new ERC20Mock();
-        token.mint(address(this), 1000 ether);
+        // token.mint(address(this), 1000 ether);
         token.transfer(USER, 500 ether);
         vm.startPrank(USER);
         token.approve(address(timeLockedVault), type(uint256).max);
@@ -227,5 +227,45 @@ contract TimeLockedVaultTest is Test {
 
         (uint256 storeAmount,) = timeLockedVault.getEthLock(USER);
         assertEq(storeAmount, 0);
+    }
+
+    function testFuzz_DepositToken(uint256 amount, uint256 unlockTime) public {
+        vm.assume(amount > 0 && amount < 100 ether);
+        vm.assume(unlockTime > block.timestamp + 1 hours);
+
+        vm.startPrank(USER);
+        timeLockedVault.depositToken(address(token), amount, unlockTime);
+        vm.stopPrank();
+
+        (uint256 storedAmount, uint256 storedUnlock) = timeLockedVault.tokenLocks(USER, address(token));
+        assertEq(storedAmount, amount);
+        assertEq(storedUnlock, unlockTime);
+    }
+
+    function testFuzz_ExtendTokenLock(uint256 newUnlockTime) public {
+        vm.assume(newUnlockTime > UNLOCKTIME + 1 hours);
+
+        vm.startPrank(USER);
+        timeLockedVault.depositToken(address(token), 10 ether, UNLOCKTIME);
+        timeLockedVault.extendTokenLock(address(token), newUnlockTime);
+        vm.stopPrank();
+
+        (, uint256 storedUnlock) = timeLockedVault.tokenLocks(USER, address(token));
+        assertEq(storedUnlock, newUnlockTime);
+    }
+
+    function testFuzz_WithdrawToken_AfterUnlock(uint256 amount, uint256 lockDuration) public {
+        vm.assume(amount > 0 && amount < 50 ether);
+        vm.assume(lockDuration > 1 hours && lockDuration < 365 days);
+
+        vm.startPrank(USER);
+        uint256 unlockTime = block.timestamp + lockDuration;
+        timeLockedVault.depositToken(address(token), amount, unlockTime);
+        vm.warp(lockDuration + 1);
+        timeLockedVault.withdrawToken(address(token));
+        vm.stopPrank();
+
+        (uint256 storedAmount,) = timeLockedVault.tokenLocks(USER, address(token));
+        assertEq(storedAmount, 0);
     }
 }
