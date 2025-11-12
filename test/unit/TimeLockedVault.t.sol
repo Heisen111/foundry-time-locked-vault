@@ -268,4 +268,17 @@ contract TimeLockedVaultTest is Test {
         (uint256 storedAmount,) = timeLockedVault.tokenLocks(USER, address(token));
         assertEq(storedAmount, 0);
     }
+
+    function testFuzz_TransferOwnership(address newOwner) public {
+        vm.assume(newOwner != address(0));
+        vm.assume(newOwner != timeLockedVault.owner());
+
+        address oldOwner = timeLockedVault.owner();
+
+        vm.startPrank(oldOwner);
+        timeLockedVault.transferOwnership(newOwner);
+        vm.stopPrank();
+
+        assertEq(timeLockedVault.owner(), newOwner);
+    }
 }
