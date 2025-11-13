@@ -1,0 +1,110 @@
+No files changed, compilation skipped
+
+Ran 9 tests for test/integration/IntegrationTests.t.sol:Integration_TimeLockedVault
+[PASS] test_ExtendTokenLockThenWithdrawWorks() (gas: 242309)
+[PASS] test_MultipleUsersIndependentEthLocks() (gas: 207446)
+[PASS] test_OwnerCanEmergencyWithdrawEth() (gas: 117747)
+[PASS] test_OwnerCanEmergencyWithdrawToken() (gas: 214345)
+[PASS] test_TokenAndEthLocksWorkIndependently() (gas: 287183)
+[PASS] test_TransferOwnershipAndExecuteAdminFunction() (gas: 150141)
+[PASS] test_UserCanDepositAndWithdrawTokenEndToEnd() (gas: 210015)
+[PASS] test_UserCanDepositExtendAndWithdrawEthEndToEnd() (gas: 154810)
+[PASS] test_UserCannotWithdrawBeforeUnlock() (gas: 112648)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 381.13ms (23.55ms CPU time)
+
+Ran 25 tests for test/unit/TimeLockedVault.t.sol:TimeLockedVaultTest
+[PASS] testDepositEthEmitsEvent() (gas: 90519)
+[PASS] testDepositEthFailsIfAlreadyLocked() (gas: 120170)
+[PASS] testDepositEthFailsWithInvalidUnlockTime() (gas: 39620)
+[PASS] testDepositEthFailsWithoutEnoughEth() (gas: 30105)
+[PASS] testDepositTokenWorks() (gas: 141035)
+[PASS] testEmergencyWithdrawWorks() (gas: 173789)
+[PASS] testEthLocksIsUpdated() (gas: 96041)
+[PASS] testExtendEthLockFailsIfNewUnlockTimeNotGreater() (gas: 115970)
+[PASS] testExtendEthLockFailsIfNoActiveLock() (gas: 37232)
+[PASS] testExtendEthLockSucceeds() (gas: 128531)
+[PASS] testExtendTokenLockWorks() (gas: 161560)
+[PASS] testFuzz_DepositEth(uint256,uint256) (runs: 257, μ: 94422, ~: 94343)
+[PASS] testFuzz_DepositToken(uint256,uint256) (runs: 257, μ: 128319, ~: 128247)
+[PASS] testFuzz_ExtendEthLock(uint256) (runs: 257, μ: 126640, ~: 126636)
+[PASS] testFuzz_ExtendTokenLock(uint256) (runs: 257, μ: 162173, ~: 162178)
+[PASS] testFuzz_TransferOwnership(address) (runs: 258, μ: 57993, ~: 58066)
+[PASS] testFuzz_WithdrawEth_AfterUnlock(uint256,uint256) (runs: 256, μ: 119870, ~: 119870)
+[PASS] testFuzz_WithdrawToken_AfterUnlock(uint256,uint256) (runs: 256, μ: 160451, ~: 160448)
+[PASS] testOwnerIsMsgSender() (gas: 8169)
+[PASS] testTransferOwnershipFailsWithInvalidNewOwner() (gas: 38650)
+[PASS] testTransferOwnershipWorks() (gas: 50757)
+[PASS] testWithdrawEthFailsIfInsufficientBalance() (gas: 36555)
+[PASS] testWithdrawEthSucceedsAfterUnlockTime() (gas: 122665)
+[PASS] testWithdrawFailsIfLockNotExpired() (gas: 114884)
+[PASS] testWithdrawTokenWorks() (gas: 161448)
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 381.16ms (1.17s CPU time)
+
+╭-------------------------------------------------------------------+-----------------+---------+---------+---------+---------╮
+| script/DeployTimeLockedVault.s.sol:DeployTimeLockedVault Contract |                 |         |         |         |         |
++=============================================================================================================================+
+| Deployment Cost                                                   | Deployment Size |         |         |         |         |
+|-------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| 1839081                                                           | 8277            |         |         |         |         |
+|-------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+|                                                                   |                 |         |         |         |         |
+|-------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| Function Name                                                     | Min             | Avg     | Median  | Max     | # Calls |
+|-------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| run                                                               | 1569184         | 1569184 | 1569184 | 1569184 | 25      |
+╰-------------------------------------------------------------------+-----------------+---------+---------+---------+---------╯
+
+╭--------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| src/TimeLockedVault.sol:TimeLockedVault Contract |                 |        |        |        |         |
++=========================================================================================================+
+| Deployment Cost                                  | Deployment Size |        |        |        |         |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 1674134                                          | 7525            |        |        |        |         |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                  |                 |        |        |        |         |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                    | Min             | Avg    | Median | Max    | # Calls |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| depositEth                                       | 21624           | 67939  | 68096  | 68444  | 785     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| depositToken                                     | 104864          | 106415 | 106375 | 109664 | 776     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| emergencyWithdraw                                | 36802           | 39985  | 39985  | 43169  | 4       |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| extendEthLock                                    | 23885           | 30603  | 30642  | 30822  | 260     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| extendTokenLock                                  | 31172           | 31346  | 31352  | 31520  | 258     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getEthLock                                       | 5204            | 5204   | 5204   | 5204   | 775     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| owner                                            | 2597            | 2597   | 2597   | 2597   | 773     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| tokenLocks                                       | 5349            | 5349   | 5349   | 5349   | 772     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| transferOwnership                                | 24236           | 28849  | 28940  | 28940  | 259     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| withdrawEth                                      | 25662           | 32145  | 32220  | 32220  | 263     |
+|--------------------------------------------------+-----------------+--------+--------+--------+---------|
+| withdrawToken                                    | 40979           | 40979  | 40979  | 40979  | 259     |
+╰--------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭---------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/mocks/ERC20Mock.sol:ERC20Mock Contract |                 |       |        |       |         |
++==================================================================================================+
+| Deployment Cost                             | Deployment Size |       |        |       |         |
+|---------------------------------------------+-----------------+-------+--------+-------+---------|
+| 978076                                      | 5662            |       |        |       |         |
+|---------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                             |                 |       |        |       |         |
+|---------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                               | Min             | Avg   | Median | Max   | # Calls |
+|---------------------------------------------+-----------------+-------+--------+-------+---------|
+| approve                                     | 46928           | 47197 | 47240  | 47240 | 29      |
+|---------------------------------------------+-----------------+-------+--------+-------+---------|
+| balanceOf                                   | 2850            | 2850  | 2850   | 2850  | 5       |
+|---------------------------------------------+-----------------+-------+--------+-------+---------|
+| transfer                                    | 52189           | 52189 | 52189  | 52189 | 34      |
+╰---------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+
+Ran 2 test suites in 878.02ms (762.29ms CPU time): 34 tests passed, 0 failed, 0 skipped (34 total tests)
